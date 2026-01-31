@@ -57,3 +57,55 @@ await client.stop();                     // Close connection
 ```
 
 The SDK uses an event-driven model—see `getResponse()` in [hangman.ts](hangman.ts) for the pattern of accumulating streamed responses.
+
+## Example Session
+
+```
+🚀 Connecting to GitHub Copilot...
+🎲 Asking Copilot to pick a secret word...
+
+🎭 Welcome to HANGMAN, where dreams come to die and letters come to play!
+Type a letter to guess, or 'hint' to beg Copilot for mercy. Let's GO! 🔥
+
+Word: _ _ _ _ _ _
+Mistakes: 0/6
+Guessed: 
+Enter guess or 'hint': A
+😬 Wrong! Were you guessing or just keyboard smashing?
+
+Word: _ _ _ _ _ _
+Mistakes: 1/6
+Guessed: A
+Enter guess or 'hint': I
+💅 Okay, okay, I see you! That's in the word, genius!
+
+Word: _ _ _ I _ _
+Mistakes: 1/6
+Guessed: A, I
+Enter guess or 'hint': S
+✨ Look at you, spelling bee champion! That letter's in there!
+
+Word: S _ _ I _ _
+Mistakes: 2/6
+Guessed: A, I, O, S
+Enter guess or 'hint': N
+🎯 BOOM! Correct! Even a broken clock is right twice a day.
+
+Word: S _ _ I N _
+Mistakes: 4/6
+Guessed: A, E, I, K, N, O, S
+Enter guess or 'hint': H
+🎪 *dramatic gasp* They CAN be taught! Correct!
+
+Word: S _ H I N _
+Mistakes: 5/6
+Guessed: A, E, G, H, I, K, N, O, S
+Enter guess or 'hint': U
+❌ Nope! That letter called in sick today. Try again!
+
+Oh, the tragedy! You've been utterly defeated by a mythical beast of a word! 🦁🦅
+
+The word was **SPHINX**. Just like the riddle-loving creature of legend, 
+this word devoured you whole while you were still guessing vowels. 
+Dust yourself off, adventurer. Try again... if you dare! 💀🎮
+```
