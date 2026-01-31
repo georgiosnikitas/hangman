@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@github/copilot-sdk": "^0.1.20"
+  },
+  "devDependencies": {
+    "@types/node": "^25.1.0"
+  }
+}
