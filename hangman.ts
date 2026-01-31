@@ -39,13 +39,45 @@ async function getResponse(session: any, prompt: string): Promise<string> {
   });
 }
 
+// Pre-cached spicy responses to avoid API latency on every turn
+const CORRECT_RESPONSES = [
+  "🔥 OH SNAP! You actually got one right! I'm impressed... slightly.",
+  "✨ Look at you, spelling bee champion! That letter's in there!",
+  "🎯 BOOM! Correct! Even a broken clock is right twice a day.",
+  "💅 Okay, okay, I see you! That's in the word, genius!",
+  "🎪 *dramatic gasp* They CAN be taught! Correct!",
+];
+
+const WRONG_RESPONSES = [
+  "💀 Oof. That letter isn't even in the same ZIP code as this word.",
+  "😬 Wrong! Were you guessing or just keyboard smashing?",
+  "🪦 RIP to that guess. The hangman thanks you for your contribution.",
+  "❌ Nope! That letter called in sick today. Try again!",
+  "🎭 Dramatic pause... WRONG! The audience gasps!",
+];
+
+const DUPLICATE_RESPONSES = [
+  "🧠 Hello? You already guessed that! Memory of a goldfish?",
+  "🔄 Déjà vu much? That letter's been there, done that!",
+  "📝 Check your notes, bestie. Already guessed!",
+  "🤦 *facepalm* We've been over this. Try a NEW letter.",
+];
+
+const INVALID_RESPONSES = [
+  "🤨 One letter. A-Z. It's not rocket science, bestie.",
+  "📖 The alphabet has 26 letters. Pick ONE of them.",
+  "🎓 Pro tip: type a single letter. Revolutionary, I know.",
+];
+
+const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
 async function playGame(word: string, session: any, question: (q: string) => Promise<string>) {
   let guessedLetters = new Set<string>();
   let mistakes = 0;
   const maxMistakes = 6;
 
-  console.log("\nOnly you and Copilot know the game has begun!");
-  console.log("Type a letter to guess, or 'hint' to ask Copilot for a clue.");
+  console.log(`\n🎭 Welcome to HANGMAN, where dreams come to die and letters come to play!`);
+  console.log(`Type a letter to guess, or 'hint' to beg Copilot for mercy. Let's GO! 🔥`);
 
   while (mistakes < maxMistakes) {
     const displayWord = word
@@ -58,7 +90,11 @@ async function playGame(word: string, session: any, question: (q: string) => Pro
     console.log(`Guessed: ${Array.from(guessedLetters).sort((a, b) => a.localeCompare(b)).join(", ")}`);
 
     if (!displayWord.includes("_")) {
-      console.log(`\nCONGRATULATIONS! You correctly guessed the word: ${word}`);
+      const winMessage = await getResponse(
+        session,
+        `The player just WON! They guessed the word "${word}" correctly! Celebrate their victory with an over-the-top, hilarious congratulations. Make them feel like a genius. Keep it short but memorable!`
+      );
+      console.log(`\n${winMessage}`);
       return;
     }
 
@@ -68,33 +104,37 @@ async function playGame(word: string, session: any, question: (q: string) => Pro
       console.log("\nAsking Copilot for a hint...");
       const hint = await getResponse(
           session, 
-          `The user is stuck on the word "${word}". Give a short, cryptic hint about its meaning without revealing the word or its length.`
+          `The user is stuck on the word "${word}" (they've guessed: ${Array.from(guessedLetters).join(", ") || "nothing yet"}). Give them a spicy, funny hint about its meaning. Be cryptic but entertaining - throw in some sass! Don't reveal the word or its length.`
       );
-      console.log(`> Copilot Clue: ${hint}`);
+      console.log(`> ${hint}`);
       continue;
     }
 
     if (input.length !== 1 || !/[A-Z]/.test(input)) {
-      console.log("Invalid input. Please enter a single letter A-Z.");
+      console.log(pick(INVALID_RESPONSES));
       continue;
     }
 
     if (guessedLetters.has(input)) {
-      console.log(`You already guessed '${input}'.`);
+      console.log(pick(DUPLICATE_RESPONSES));
       continue;
     }
 
     guessedLetters.add(input);
 
     if (word.includes(input)) {
-      console.log(`Using Copilot's wisdom... '${input}' is CORRECT!`);
+      console.log(pick(CORRECT_RESPONSES));
     } else {
-      console.log(`Sorry, '${input}' is NOT in the word.`);
+      console.log(pick(WRONG_RESPONSES));
       mistakes++;
     }
   }
 
-  console.log(`\nGAME OVER! The word was: ${word}`);
+  const loseMessage = await getResponse(
+    session,
+    `GAME OVER! The player lost with ${maxMistakes} mistakes. The word was "${word}". Give them a dramatic, funny game over message. Reveal the word and roast them for failing, but encourage them to try again. Keep it memorable!`
+  );
+  console.log(`\n${loseMessage}`);
 }
 
 const rl = readline.createInterface({
@@ -107,14 +147,23 @@ const question = (query: string) => new Promise<string>((resolve) => rl.question
 const client = new CopilotClient();
 
 try {
-  console.log("Connecting to GitHub Copilot...");
+  console.log("🚀 Connecting to GitHub Copilot...");
   await client.start();
-  const session = await client.createSession({ model: "gpt-5" });
+  const session = await client.createSession({ 
+    model: "gpt-4o",
+    systemPrompt: `You are the sassiest, most entertaining Hangman host in the galaxy. Your personality is:
+- Witty and playful with a dash of roast energy
+- You love dramatic flair and theatrical responses  
+- You give hints that are cryptic but hilarious
+- Sprinkle in pop culture references and puns
+- Keep responses SHORT (1-2 sentences max)
+Never reveal the secret word directly!`
+  });
 
-  console.log("Asking Copilot to pick a secret word...");
+  console.log("🎲 Asking Copilot to pick a secret word...");
   const secretWordRaw = await getResponse(
     session, 
-    "Pick a random English word (difficulty: medium) for a game of Hangman. Return ONLY the word in uppercase. Do not explain. Do not include spaces or punctuation."
+    "Pick a random English word (difficulty: medium) for Hangman. Return ONLY the uppercase word, nothing else."
   );
   
   // Clean up the word just in case
