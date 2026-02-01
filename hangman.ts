@@ -131,7 +131,7 @@ async function playGame(word: string, session: any, question: (q: string) => Pro
   }
 
   const loseMessage = await getResponse(
-    session,
+    session,  
     `GAME OVER! The player lost with ${maxMistakes} mistakes. The word was "${word}". Give them a dramatic, funny game over message. Reveal the word and roast them for failing, but encourage them to try again. Keep it memorable!`
   );
   console.log(`\n${loseMessage}`);
